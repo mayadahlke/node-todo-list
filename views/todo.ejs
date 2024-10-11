@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+    <head>
+        <title>TODO List</title>
+    </head>
+
+    <body>
+        <div>
+            <h1>TODO List</h1>
+            <h3>Tasks to be completed:</h3>
+
+            <div style="display: flex; flex-direction: column; justify-content: center; gap: 5px;">
+                <% tasks.forEach((task, index) => { %>
+                    <div>
+                        <input type="checkbox" id="<%= index %>" name="<%= index %>" value="<%= task %>">
+                        <label for="<%= index %>"><%= task %></label>
+                    </div>
+                <% }); %>
+            </div>
+
+            <form action="/add" method="post">
+                <input type="text" id="task" name="task" placeholder="Enter your task here" oninput="checkInput()">
+                <button type="submit" id="addButton" disabled>Add Item</button>
+            </form>
+
+            <button id="removeButton">Remove Items</button>
+        </div>
+    </body>
+
+    <script>
+        function checkInput() {
+            const input = document.getElementById("task").value;
+            const addButton = document.getElementById("addButton");
+            addButton.disabled = input.trim() === "";
+        }
+
+        document.getElementById("removeButton").addEventListener("click", () => {
+            fetch("/remove", {
+                method: "DELETE"
+            }).then(() => {
+                alert("All completed tasks have been removed!");
+            });
+        });
+    </script>
+</html>
