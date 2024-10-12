@@ -3,26 +3,106 @@
         <title>TODO List</title>
     </head>
 
-    <body>
-        <div>
-            <h1>TODO List</h1>
-            <h3>Tasks to be completed:</h3>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            border-right: 100px solid #9d9d9d;
+            border-left: 100px solid #9d9d9d;
+        }
 
-            <div style="display: flex; flex-direction: column; justify-content: center; gap: 5px;">
-                <% tasks.forEach((task, index) => { %>
-                    <div>
-                        <input type="checkbox" id="<%= index %>" name="<%= index %>" value="<%= task %>">
-                        <label for="<%= index %>"><%= task %></label>
-                    </div>
-                <% }); %>
-            </div>
+        h1 {
+            text-decoration: underline;
+            margin-top: 40px;
+        }
+
+        h3 {
+            margin: 0;
+        }
+
+        .parent {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .break {
+            margin-top: 25px;
+        }
+
+        input[type="text"] {
+            padding: 5px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        label {
+            font-size: 16px;
+        }
+
+        button {
+            padding: 5px 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+
+        button#removeButton {
+            background-color: indianred;
+        }
+
+        button#removeButton:hover {
+            background-color: rgb(150, 69, 69);
+        }
+
+        button#addButton:enabled {
+            background-color: dodgerblue;
+        }
+
+        button#addButton:hover {
+            background-color: rgb(23, 109, 195);
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+
+    </style>
+
+    <body>
+        <div class="parent">
+            <h1>TODO List</h1>
 
             <form action="/add" method="post">
                 <input type="text" id="task" name="task" placeholder="Enter your task here" oninput="checkInput()">
-                <button type="submit" id="addButton" disabled>Add Item</button>
+                <button type="submit" id="addButton" disabled>Add Task</button>
             </form>
+            <button id="removeButton">Remove Completed Tasks</button>
 
-            <button id="removeButton">Remove Items</button>
+            <div class="parent break">
+                <h3>Tasks to be completed:</h3>
+                <div>
+                    <% if (tasks.length === 0) { %>
+                        <p>No tasks to complete!</p>
+                    <% } else { %>
+                        <% tasks.forEach((task) => { %>
+                            <div>
+                                <input type="checkbox" id="<%= task.id %>" name="<%= task.id %>" value="<%= task.text %>">
+                                <label for="<%= task.id %>"><%= task.text %></label>
+                            </div>
+                        <% }); %>
+                    <% } %>
+                </div>
+            </div>
         </div>
     </body>
 
@@ -34,10 +114,24 @@
         }
 
         document.getElementById("removeButton").addEventListener("click", () => {
+            const checkedTasks = document.querySelectorAll("input[type='checkbox']:checked");
+
+            if (checkedTasks.length === 0) {
+                alert("No tasks have been selected!");
+                return;
+            }
+
+            const tasksToRemove = [...checkedTasks].map((task) => task.id);
             fetch("/remove", {
-                method: "DELETE"
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ tasksToRemove })
             }).then(() => {
-                alert("All completed tasks have been removed!");
+                window.location.reload();
+            }).catch((error) => {
+                console.error("Error:", error);
             });
         });
     </script>

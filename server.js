@@ -7,40 +7,52 @@ const port = 3000;
 const filePath = "todo.txt";
 
 app.set("view engine", "ejs");
+app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 let tasks = [];
 
-app.get("/", (req, res) => {
+// Load tasks from file on startup
+loadFile = async () => {
+    if (fs.existsSync(filePath)) {
+        try {
+            const data = await fs.promises.readFile(filePath, "utf8");
+            console.log("Tasks file content:", data.toString());
+            //TODO: Parse the data and set the tasks array
+        } catch (error) {
+            console.error("Error reading tasks file:", error);
+        }
+    } else {
+        console.log("Tasks file does not exist.");
+    }
+};
+loadFile();
+
+app.get("/", async (req, res) => {
     let content = "";
     for (let task of tasks) {
-        content += `- ${task}\n`;
+        content += `- ${task.text} (${task.id})\n`;
     }
-    console.log(content);
 
-    fs.writeFile(filePath, content, (err) => {
-        if (err) {
-            console.error(err);
-        } else {
-            console.log("File has been created");
-        }
-    });
-
-    res.render("todo", { tasks: tasks });
+    try {
+        await fs.promises.writeFile(filePath, content);
+        res.render("todo", { tasks: tasks });
+    } catch (error) {
+        console.error("Error writing tasks file:", error);
+    }
 });
 
 app.post("/add", (req, res) => {
     const task = req.body.task;
-    tasks.push(task);
+    tasks.push({ text: task, id: Date.now() });
 
     res.redirect("/");
 });
 
-app.delete("/remove", (req, res) => {
-    tasks = [];
-
-    console.log(tasks);
+app.post("/remove", (req, res) => {
+    const tasksToRemove = req.body.tasksToRemove;
+    tasks = tasks.filter((task) => !tasksToRemove.includes(task.id.toString()));
 
     res.redirect("/");
 });
