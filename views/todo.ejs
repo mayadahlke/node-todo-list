@@ -34,6 +34,18 @@
             margin-top: 25px;
         }
 
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .item {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
         input[type="text"] {
             padding: 5px;
             font-size: 16px;
@@ -54,11 +66,11 @@
             cursor: pointer;
         }
 
-        button#removeButton {
+        button#removeButton:enabled {
             background-color: indianred;
         }
 
-        button#removeButton:hover {
+        button#removeButton:enabled:hover {
             background-color: rgb(150, 69, 69);
         }
 
@@ -66,13 +78,16 @@
             background-color: dodgerblue;
         }
 
-        button#addButton:hover {
+        button#addButton:enabled:hover {
             background-color: rgb(23, 109, 195);
         }
 
         button:disabled {
             background-color: #ccc;
-            cursor: not-allowed;
+        }
+
+        button:disabled:hover {
+            background-color: #979797;
         }
 
 
@@ -86,17 +101,22 @@
                 <input type="text" id="task" name="task" placeholder="Enter your task here" oninput="checkInput()">
                 <button type="submit" id="addButton" disabled>Add Task</button>
             </form>
-            <button id="removeButton">Remove Completed Tasks</button>
+            <button id="removeButton" disabled>Remove Completed Tasks</button>
 
             <div class="parent break">
                 <h3>Tasks to be completed:</h3>
-                <div>
+                <div class="list">
                     <% if (tasks.length === 0) { %>
                         <p>No tasks to complete!</p>
                     <% } else { %>
                         <% tasks.forEach((task) => { %>
-                            <div>
-                                <input type="checkbox" id="<%= task.id %>" name="<%= task.id %>" value="<%= task.text %>">
+                            <div class="item">
+                                <input
+                                    type="checkbox"
+                                    id="<%= task.id %>"
+                                    name="<%= task.id %>"
+                                    value="<%= task.text %>"
+                                    onchange="checkList()">
                                 <label for="<%= task.id %>"><%= task.text %></label>
                             </div>
                         <% }); %>
@@ -113,14 +133,12 @@
             addButton.disabled = input.trim() === "";
         }
 
+        function checkList() {
+            removeButton.disabled = document.querySelectorAll("input[type='checkbox']:checked").length === 0;
+        }
+
         document.getElementById("removeButton").addEventListener("click", () => {
             const checkedTasks = document.querySelectorAll("input[type='checkbox']:checked");
-
-            if (checkedTasks.length === 0) {
-                alert("No tasks have been selected!");
-                return;
-            }
-
             const tasksToRemove = [...checkedTasks].map((task) => task.id);
             fetch("/remove", {
                 method: "POST",

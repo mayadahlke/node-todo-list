@@ -18,8 +18,14 @@ loadFile = async () => {
     if (fs.existsSync(filePath)) {
         try {
             const data = await fs.promises.readFile(filePath, "utf8");
-            console.log("Tasks file content:", data.toString());
-            //TODO: Parse the data and set the tasks array
+            previousTasks = data.toString().split("\n");
+            previousTasks.forEach((task) => {
+                if (task) {
+                    const id = task.match(/\((\d+)\)/)[1];
+                    const text = task.match(/- (.+) \(/)[1];
+                    tasks.push({ text: text, id: id });
+                }
+            });
         } catch (error) {
             console.error("Error reading tasks file:", error);
         }
@@ -29,6 +35,7 @@ loadFile = async () => {
 };
 loadFile();
 
+// HTTP routes
 app.get("/", async (req, res) => {
     let content = "";
     for (let task of tasks) {
@@ -59,5 +66,5 @@ app.post("/remove", (req, res) => {
 
 // Start the server
 app.listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`);
+    console.log(`Server is running at http://localhost:${port}.`);
 });
